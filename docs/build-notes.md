@@ -56,6 +56,13 @@ reopens a walked fork. Where a note narrows what leaves the machine, §2.6 (neve
   `workflows/`, `hooks/`, `bin/`, `tools/`). A skill that mentions `lib/phase1.ts` or an API
   route file is pointing at application source, which §2.6 says never leaves; the reference is
   listed as *found, not copied* so the eval knows it exists.
+- **`<skill-dir>` and `$CLAUDE_SKILL_DIR` mean the skill's own folder** (2026-09-24, walk D15). Before
+  this, `>` was no boundary for the path finder, so `<skill-dir>/scripts/x.js` was read as
+  `/scripts/x.js`, an absolute path, and five home skills were listed as pointing at files that sit
+  in their own folder. `$CLAUDE_SKILL_DIR/../other/scripts/x.mjs` reaches a sibling skill in the same
+  plugin or skills folder. Any other `<name>/file.ext` is listed as a placeholder, not as an absolute
+  path. `<skill-path>` is not the skill's folder: skill-creator uses it for whichever skill is being
+  edited.
 - **Tokens with regex escapes** (`api\.cohere\.ai`) are not paths.
 - **Guards:** a resolved path must lie inside the base it was resolved against, so `../.env`
   cannot climb out; absolute paths outside the project and `~/.claude` are not opened.

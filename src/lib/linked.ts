@@ -29,10 +29,16 @@ const URL = /\b[a-z][a-z0-9+.-]*:\/\/\S+/gi;
 const SEGMENT = '[A-Za-z0-9_.-]+';
 /** The last segment may be a dotfile (`.env`, `.eslintrc.json`): a name of any length, then `.ext`. */
 const LAST_SEGMENT = '[A-Za-z0-9_.-]*\\.[A-Za-z][A-Za-z0-9]{0,7}';
-const PREFIX = '(?:\\$\\{?CLAUDE_PLUGIN_ROOT\\}?|~|\\.\\.?|[A-Za-z]:)?';
 /**
- * A path-shaped token: an optional prefix (`~`, `.`, `..`, a drive letter, `$CLAUDE_PLUGIN_ROOT`),
- * at least one separator, and a file extension that starts with a letter. `docs/spec.md`,
+ * The skill's own folder: $CLAUDE_SKILL_DIR or $SKILL_DIR (with or without braces) and <skill-dir>.
+ * <skill-path> is not one: skill-creator uses it for whichever skill is being edited.
+ */
+const SKILL_DIR = /^(?:\$\{?(?:CLAUDE_)?SKILL_DIR\}?|<skill[-_]dir>|<SKILL[-_]DIR>)/;
+const PREFIX = '(?:\\$\\{?CLAUDE_PLUGIN_ROOT\\}?|\\$\\{?(?:CLAUDE_)?SKILL_DIR\\}?|<[A-Za-z0-9_-]+>|~|\\.\\.?|[A-Za-z]:)?';
+/**
+ * A path-shaped token: an optional prefix (`~`, `.`, `..`, a drive letter, `$CLAUDE_PLUGIN_ROOT`,
+ * `$CLAUDE_SKILL_DIR`, a `<placeholder>`), at least one separator, and a file extension that starts
+ * with a letter. Without the placeholder prefix, `<skill-dir>/scripts/x.js` was read as `/scripts/x.js`. `docs/spec.md`,
  * `./scripts/run.sh`, `.claude/workflows/x.js`, `$CLAUDE_PLUGIN_ROOT/scripts/g.py`, `C:\x\y.ps1`.
  */
 const PATH_TOKEN = new RegExp(`(?<![A-Za-z0-9_@:])(${PREFIX}(?:[\\\\/]${SEGMENT})*[\\\\/]${LAST_SEGMENT}|${SEGMENT}(?:[\\\\/]${SEGMENT})*[\\\\/]${LAST_SEGMENT})(?![A-Za-z0-9_])`, 'g');
@@ -84,6 +90,24 @@ async function resolveToken(token: string, skill: SkillEntry, home: Home, projec
   const baseKind = skill.source === 'home' ? 'home' : isPlugin ? 'plugin' : 'project';
   const baseLabel = skill.source === 'home' ? 'home' : isPlugin ? skill.source : projectLabel ?? skill.source;
   const describe = (kind: boolean | 'folder', where: string): Resolution => ({ ok: false, reason: kind === 'folder' ? 'is a folder' : `not found ${where}` });
+
+  if (SKILL_DIR.test(token)) {
+    const rest = token.replace(SKILL_DIR, '').replace(/^[\\/]+/, '');
+    const disk = resolve(skill.diskPath, ...rest.split(/[\\/]/));
+    if (inside(skill.diskPath, disk)) {
+      const kind = await isFile(disk);
+      return kind === true ? { ok: true, disk, base: skill.diskPath, label: baseLabel, kind: 'skill' } : describe(kind, 'under the skill folder');
+    }
+    // $CLAUDE_SKILL_DIR/../other/scripts/x.mjs: a sibling skill in the same plugin or skills folder.
+    if (inside(skill.baseDir, disk)) {
+      const base = baseKind === 'home' ? claudeDir : skill.baseDir;
+      const kind = await isFile(disk);
+      return kind === true ? { ok: true, disk, base, label: baseLabel, kind: baseKind } : describe(kind, 'next to the skill folder');
+    }
+    return { ok: false, reason: 'resolves outside the skill folder, its project and ~/.claude; not opened' };
+  }
+  // <worktree>/report.json: a placeholder nobody can resolve. It is listed as one, never as the absolute path after the >.
+  if (token.startsWith('<')) return { ok: false, reason: 'a placeholder in angle brackets, not a path on this machine' };
 
   if (PLUGIN_ROOT.test(token)) {
     if (!isPlugin) return { ok: false, reason: 'CLAUDE_PLUGIN_ROOT referenced outside a plugin' };

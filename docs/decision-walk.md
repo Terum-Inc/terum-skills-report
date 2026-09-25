@@ -33,6 +33,7 @@ Spec: `docs/spec.md` §11 forks F1–F5 and §2.4 opt-ins.
 | 12 | A human approve step on the `npm` environment | 2/10 | 2/10 | LOCK | Obvious — matches the terum-skills ruling that a release has provenance and a human approval. | — |
 | 13 | What the placeholder does if run unpinned | 1/10 | 1/10 | LOCK | Obvious — prints the pinned command and exits with an error rather than silently doing nothing. | — |
 | 14 | How the screen points at the output folder | 3/10 | 2/10 | LOCK | Obvious — a plain `file://` link is the one form every common terminal makes clickable; the bundle is unchanged. | — |
+| 15 | Skill-folder placeholders in script paths | 4/10 | 4/10 | LOCK | `<skill-dir>` and `$CLAUDE_SKILL_DIR` resolve inside the skill folder; any other `<name>/file.ext` is listed as a placeholder. Ryan, 2026-09-24. | — |
 
 ---
 
@@ -335,3 +336,31 @@ The `Written to` line prints a `file://` link to the real folder, because every 
 | plain `file://` link (picked) | 3 — §4 "a folder they can open"; §5.5 bans identity in the bundle, not on the screen | 0 — Node's `pathToFileURL` builds it and the bin test pins it |
 | hidden link codes some terminals understand (OSC 8) over the `~/` spelling | 1 — spec silent; Terminal.app and the plain Windows console show nothing to click | 1 — a terminal that prints the codes as text |
 | keep the `~/` spelling | 0 — the ask was a link | 0 — no change |
+
+---
+
+## Decision 15 — Skill-folder placeholders in script paths
+
+**Verdict: LOCK** · **Impact: 4/10** — one function in the path resolver; the miss list changes on every future run, reversible in an hour · **Importance: 4/10** — the options differ in whether five skills get scored, not in anything hard to undo
+
+### Plain English
+- **Where we are:** When a skill names a script, the collector copies it and lists what it could not find. A path written as `<skill-dir>/scripts/x.js` was misread as a path from the disk root, so five home skills were listed as broken.
+- **The question:** Do we teach the collector that `<skill-dir>` means the skill's own folder?
+- **Options:**
+  - **A — Recognise the placeholder.** `<skill-dir>` and `$CLAUDE_SKILL_DIR` (with or without braces) resolve inside the skill folder, as the plugin-root variable already does; a `../sibling` form reaches the next skill in the same plugin or skills folder; any other `<name>/file.ext` is listed as a placeholder, never as an absolute path. *(the difference that decides: those five skills become scoreable and honestly described)*
+  - **B — Leave it.** The manifest keeps saying "absolute path, not opened". *(the difference that decides: no code change; the report skips five skills)*
+- **Recommendation:** A, because spec §2.2 says referenced scripts are copied, and the file is right there.
+- **Impact (4/10):** one function, reversible in an hour · **Importance (4/10):** five skills' scoring, nothing hard to undo
+- **The call:** A. Ryan, 2026-09-24: "recognize the placeholder". `<skill-path>` stays unrecognised: skill-creator uses it for whichever skill is being edited, so resolving it to this skill would be a guess.
+
+### Scores
+| Option | Fit (0-4) | Bug risk (0-4) | Wins if |
+|---|---|---|---|
+| A — recognise the placeholder | 3 — §2.2 "scripts a skill references are copied" | 1 — mechanical; an unrecognised spelling falls back to today's miss | the report should score these skills |
+| B — leave it | 1 — spec silent on placeholders; the recorded reason is misleading | 0 — no change | zero collector changes before the Mac runs |
+
+### Technical
+- **Files / code paths:** `src/lib/linked.ts` (`PREFIX`, new `SKILL_DIR`, `resolveToken`); planted cases in `src/__tests__/fixture.ts`, `linked.test.ts`, `leak.test.ts`, `bin.test.ts`.
+- **Migration / schema:** none.
+- **Effort / blast radius:** small; the same code covers `${CLAUDE_SKILL_DIR}`, which the browserbase autobrowse plugin skill uses, including `../browser-trace/scripts/x.mjs`.
+- **Grounding findings:** every SKILL.md on this machine (292 files) uses `<skill-dir>` 23 times, `${CLAUDE_SKILL_DIR}` 14 times and `<skill-path>` 4 times (skill-creator, as an argument); 17 references in five home skills were misreported as absolute paths.

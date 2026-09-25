@@ -106,6 +106,7 @@ export async function buildFixture(): Promise<Fixture> {
     '# alpha', '', 'Run `scripts/run.sh` first, then `node .claude/workflows/helper.js`.',
     'Never read `../.env`. Docs: https://example.com/alpha/guide.md', '',
     'Permissions live in `.claude/settings.json`; transcripts in `~/.claude/projects/x.jsonl`.', '',
+    'Its own folder: `<skill-dir>/scripts/run.sh`; not there: `${CLAUDE_SKILL_DIR}/scripts/absent.py`; a placeholder: `<worktree>/report.json`.', '',
   ].join('\n'));
   await write(H('.claude', 'skills', 'alpha', 'scripts', 'run.sh'), [
     '#!/bin/sh',
@@ -147,7 +148,7 @@ export async function buildFixture(): Promise<Fixture> {
       'missing@market': [{ scope: 'user', installPath: join(home, '.claude', 'plugins', 'cache', 'market', 'missing', '1.0.0'), version: '1.0.0' }],
     },
   }, null, 2));
-  await write(join(pluginRoot, 'skills', 'gamma-skill', 'SKILL.md'), '---\nname: gamma-skill\ndescription: Gamma.\n---\nRun `python $CLAUDE_PLUGIN_ROOT/scripts/g.py` and `${CLAUDE_PLUGIN_ROOT}/scripts/absent.py`.\n');
+  await write(join(pluginRoot, 'skills', 'gamma-skill', 'SKILL.md'), '---\nname: gamma-skill\ndescription: Gamma.\n---\nRun `python $CLAUDE_PLUGIN_ROOT/scripts/g.py` and `${CLAUDE_PLUGIN_ROOT}/scripts/absent.py`, also `${CLAUDE_SKILL_DIR}/../../scripts/g.py`.\n');
   await write(join(pluginRoot, 'scripts', 'g.py'), [
     'import os',
     'KEY = os.environ["OPENAI_API_KEY"]  # variable read, not flagged',

@@ -216,7 +216,7 @@ describe('leak test on a planted home folder', () => {
     for (const name of ['.env', 'id_rsa', 'debug.log', '__pycache__/helper.cpython-312.pyc']) expect(contents.has(`skills/home/alpha/${name}`), name).toBe(false);
   });
 
-  it('copies the scripts skills reference, refuses .env and paths that climb out, and records every miss', () => {
+  it('copies the scripts skills reference, resolves the skill-folder placeholders, refuses .env and paths that climb out, and records every miss', () => {
     const linked = result.report.extras.filter((e) => e.kind === 'linked').map((e) => `${e.outputPath} <- ${(e.referencedBy ?? []).join(',')}`).sort();
     expect(linked).toEqual([
       'linked/home/workflows/helper.js <- alpha (home)',
@@ -226,8 +226,10 @@ describe('leak test on a planted home folder', () => {
     ]);
     const misses = result.report.linkedMisses.map((m) => `${m.skill}: ${m.reference} -> ${m.reason}`).sort();
     expect(misses).toEqual([
+      'alpha: ${CLAUDE_SKILL_DIR}/scripts/absent.py -> not found under the skill folder',
       'alpha: ../.env -> .env files are never collected',
       'alpha: .claude/settings.json -> settings and MCP configuration are never collected',
+      'alpha: <worktree>/report.json -> a placeholder in angle brackets, not a path on this machine',
       'alpha: ~/.claude/projects/x.jsonl -> session transcripts are never collected',
       'delta: /etc/secrets.yaml -> absolute path outside the project and ~/.claude; not opened',
       'delta: C:\\absolute\\nowhere.ps1 -> absolute path outside the project and ~/.claude; not opened',
