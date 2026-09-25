@@ -99,6 +99,8 @@ export interface Report {
   startedAt: string;
   flags: { usage: boolean; includeHooks: boolean; includeClaudeMd: boolean; hashLabels: boolean };
   outputFolder: string;
+  /** A `file://` link to the real output folder, for the screen only: it carries the real home path, so it is never written into the bundle (spec §5.5). */
+  outputFolderUrl: string;
   desktopFallback: boolean;
   skills: SkillEntry[];
   extras: CopiedExtra[];

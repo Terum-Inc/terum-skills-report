@@ -145,6 +145,10 @@ re-read against the code and fixed with a planted case in the leak test unless n
 
 ## Screen and manifest (spec §3, §4)
 
+- **The `Written to` line is a `file://` link** to the real folder (2026-09-24, walk D14), because
+  every common terminal turns a URL into something to click and none did that for the spec's `~/`
+  spelling. It is the one place the real home path appears on the screen; the bundle keeps the
+  scrubbed spelling, and the bin test allows the username on stdout inside that line only.
 - The output is built in a `.partial` sibling and renamed at the end, so a crash leaves a folder
   that is visibly unfinished. A folder that already exists gets `-2`, `-3`.
 - Without a `Desktop` folder the output goes to the home folder and the screen says so.

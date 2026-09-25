@@ -7,7 +7,8 @@
 import { realpath } from 'node:fs';
 import { readdir, readFile, rm, stat } from 'node:fs/promises';
 import { promisify } from 'node:util';
-import { join, relative } from 'node:path';
+import { join, relative, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { run, type RunResult } from '../run.js';
 import { buildFixture, commitProjectA, PLANTED, type Fixture } from './fixture.js';
@@ -111,6 +112,13 @@ describe('leak test on a planted home folder', () => {
     }
     expect(leaks).toEqual([]);
     expect(contents.size).toBeGreaterThan(0);
+  });
+
+  it('links the screen to the real folder and keeps that link out of every output file', async () => {
+    const url = result.report.outputFolderUrl;
+    expect(url.startsWith('file:///')).toBe(true);
+    expect(resolve(fileURLToPath(url))).toBe(await promisify(realpath.native)(outDir));
+    for (const [, text] of contents) expect(text).not.toContain(url);
   });
 
   it('lists every written file in manifest.json with a matching sha256', async () => {

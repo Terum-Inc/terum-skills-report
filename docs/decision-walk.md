@@ -32,6 +32,7 @@ Spec: `docs/spec.md` §11 forks F1–F5 and §2.4 opt-ins.
 | 11 | Which npm CLI version the workflow installs | 2/10 | 1/10 | LOCK | Obvious — 11.11.1 is the pin terum-skills' releases prove every week; newest is a guess. | — |
 | 12 | A human approve step on the `npm` environment | 2/10 | 2/10 | LOCK | Obvious — matches the terum-skills ruling that a release has provenance and a human approval. | — |
 | 13 | What the placeholder does if run unpinned | 1/10 | 1/10 | LOCK | Obvious — prints the pinned command and exits with an error rather than silently doing nothing. | — |
+| 14 | How the screen points at the output folder | 3/10 | 2/10 | LOCK | Obvious — a plain `file://` link is the one form every common terminal makes clickable; the bundle is unchanged. | — |
 
 ---
 
@@ -320,3 +321,17 @@ The placeholder prints the pinned command and exits with an error, so an unpinne
 |---|---|---|
 | prints the command, exits 1 (picked) | 3 — §5.1 "the version the engineer read is the version that runs" | 0 — a print statement |
 | empty package, no command | 1 — spec silent; silently does nothing | 0 — nothing runs |
+
+---
+
+## Decision 14 — How the screen points at the output folder (settled without asking)
+
+**Verdict: LOCK** · **Impact: 3/10** — one line on the screen; nothing in the bundle changes · **Importance: 2/10** — one option works on every common terminal and the others do not
+
+The `Written to` line prints a `file://` link to the real folder, because every common terminal (Windows Terminal, Terminal.app, iTerm2, VS Code) turns a URL into something to click and none of them did that for the `~/` spelling (Ryan asked for a clickable link, 2026-09-24). The link is the one place the real home path appears on the screen; §5.5 governs the bundle, which keeps the scrubbed spelling, and the bin test now allows the username on stdout inside that line only.
+
+| Option | Fit (0-4) | Bug risk (0-4) |
+|---|---|---|
+| plain `file://` link (picked) | 3 — §4 "a folder they can open"; §5.5 bans identity in the bundle, not on the screen | 0 — Node's `pathToFileURL` builds it and the bin test pins it |
+| hidden link codes some terminals understand (OSC 8) over the `~/` spelling | 1 — spec silent; Terminal.app and the plain Windows console show nothing to click | 1 — a terminal that prints the codes as text |
+| keep the `~/` spelling | 0 — the ask was a link | 0 — no change |
