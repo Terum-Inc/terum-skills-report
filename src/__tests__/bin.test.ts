@@ -5,8 +5,9 @@
  * and `os.homedir()` together.
  */
 import { execFile } from 'node:child_process';
-import { readFile, rm, stat } from 'node:fs/promises';
+import { readFile, realpath, rm, stat } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { buildFixture, PLANTED, type Fixture } from './fixture.js';
@@ -37,8 +38,9 @@ describe('dist/index.js', () => {
     const { stdout, stderr } = await run(process.execPath, [bin, '--out', out, '--json'], { env: env(), timeout: 120_000 });
     expect(stderr).toBe('');
     const summary = JSON.parse(stdout) as Record<string, unknown>;
-    expect(summary).toMatchObject({ skills: 5, skillsUniqueByContent: 4, commands: 2, agents: 2, linkedCopied: 4, linkedMissing: 8 });
+    expect(summary).toMatchObject({ skills: 5, skillsUniqueByContent: 4, commands: 2, agents: 2, linkedCopied: 4, linkedMissing: 12, linkedMissingScripts: 4 });
     expect((summary['usage'] as { firings: number }).firings).toBe(4);
+    expect(resolve(fileURLToPath(summary['outputFolderUrl'] as string))).toBe(await realpath(out));
     expect((await stat(join(out, 'MANIFEST.md'))).isFile()).toBe(true);
     const manifest = await readFile(join(out, 'MANIFEST.md'), 'utf8');
     expect(manifest).not.toContain(PLANTED.username);
@@ -52,7 +54,12 @@ describe('dist/index.js', () => {
     expect(stdout).toContain('No raw session logs are sent out. All session logs were read locally, just for skill usage.');
     expect(stdout).toMatch(/Skills found\s+5\s+\(4 unique by content\)/);
     expect(stdout).toContain('This tool has not sent anything and will not. Nothing was installed or changed on this machine.');
-    expect(stdout).not.toContain(PLANTED.username);
+    // The closing line is a file:// link to the real folder: the one place the username may appear on the screen (spec §5.5 governs the bundle, not the screen).
+    const link = /^Written to  (file:\/\/\/\S+)$/m.exec(stdout)?.[1];
+    expect(link).toBeDefined();
+    expect(resolve(fileURLToPath(link!))).toBe(await realpath(out));
+    expect(stdout).toContain('Click the link to open the folder');
+    expect(stdout.replace(link!, '<link>')).not.toContain(PLANTED.username);
   });
 
   it('refuses an unknown flag with exit code 2 and writes nothing', async () => {

@@ -56,6 +56,31 @@ reopens a walked fork. Where a note narrows what leaves the machine, §2.6 (neve
   `workflows/`, `hooks/`, `bin/`, `tools/`). A skill that mentions `lib/phase1.ts` or an API
   route file is pointing at application source, which §2.6 says never leaves; the reference is
   listed as *found, not copied* so the eval knows it exists.
+- **`<skill-dir>` and `$CLAUDE_SKILL_DIR` mean the skill's own folder** (2026-09-24, walk D15). Before
+  this, `>` was no boundary for the path finder, so `<skill-dir>/scripts/x.js` was read as
+  `/scripts/x.js`, an absolute path, and five home skills were listed as pointing at files that sit
+  in their own folder. `$CLAUDE_SKILL_DIR/../other/scripts/x.mjs` reaches a sibling skill in the same
+  plugin or skills folder. Any other `<name>/file.ext` is listed as a placeholder, not as an absolute
+  path. `<skill-path>` is not the skill's folder: skill-creator uses it for whichever skill is being
+  edited.
+- **Only a missing script disqualifies a skill** (2026-09-27, walk D16). Spec §2.2 said every
+  unresolved reference makes the skill *not evaluable*; on the first real bundle that was 72 of 117
+  skills, mostly over prose example paths such as `path/to/file.ts`. Now each miss carries
+  `disqualifies`: true when the reference is script-like (under `scripts/`, `bin/`, `tools/` or
+  `workflows/`, or a shell-script extension) and the file is not in the bundle (not found, not
+  opened, or found but not copied). `.js`, `.ts` and `.py` alone do not count, because skills name
+  application source and prose examples with them; `hooks/` does not count, because Claude Code runs
+  hooks, not the skill, and hook configuration is never collected by default. Placeholders,
+  never-collected files and folders never disqualify. MANIFEST.md marks the disqualifying lines, and
+  the screen and `--json` count them.
+- **Three more resolver gaps, found by reading the first 26 flagged lines** (2026-09-27, with D16):
+  a relative `../other/scripts/x.mjs` from the skill folder resolves inside the same plugin, project
+  or skills folder, as the `$CLAUDE_SKILL_DIR/..` form already did; a project skill's
+  `skills/<name>/scripts/x.py`, written from the project's `.claude` folder, is tried against that
+  folder and reported against the project root so the output path is stable; `{SKILL_DIR}` is a
+  third own-folder spelling, and any other `{name}/file.ext` or `$VAR/file.ext` is listed as a
+  placeholder, never as a root path. On this machine: linked copies 7 to 11, misses 372 to 357,
+  missing scripts 26 to 12.
 - **Tokens with regex escapes** (`api\.cohere\.ai`) are not paths.
 - **Guards:** a resolved path must lie inside the base it was resolved against, so `../.env`
   cannot climb out; absolute paths outside the project and `~/.claude` are not opened.
@@ -145,6 +170,10 @@ re-read against the code and fixed with a planted case in the leak test unless n
 
 ## Screen and manifest (spec §3, §4)
 
+- **The `Written to` line is a `file://` link** to the real folder (2026-09-24, walk D14), because
+  every common terminal turns a URL into something to click and none did that for the spec's `~/`
+  spelling. It is the one place the real home path appears on the screen; the bundle keeps the
+  scrubbed spelling, and the bin test allows the username on stdout inside that line only.
 - The output is built in a `.partial` sibling and renamed at the end, so a crash leaves a folder
   that is visibly unfinished. A folder that already exists gets `-2`, `-3`.
 - Without a `Desktop` folder the output goes to the home folder and the screen says so.

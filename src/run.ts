@@ -6,7 +6,8 @@
 import { realpath } from 'node:fs';
 import { stat } from 'node:fs/promises';
 import { promisify } from 'node:util';
-import { join } from 'node:path';
+import { join, sep } from 'node:path';
+import { pathToFileURL } from 'node:url';
 import type { CliOptions } from './cli/args.js';
 import { Copier } from './lib/copier.js';
 import { toCsv, type CsvValue } from './lib/csv.js';
@@ -77,6 +78,8 @@ export async function run(opts: RunOptions): Promise<RunResult> {
     startedAt: opts.now.toISOString(),
     flags: { usage: options.usage, includeHooks: options.includeHooks, includeClaudeMd: options.includeClaudeMd, hashLabels: options.hashLabels },
     outputFolder: shownFolder,
+    // The screen's link to the folder: the one place the real home path is shown, on the engineer's own screen. The bundle never carries it (spec §5.5).
+    outputFolderUrl: pathToFileURL(realFinal.endsWith(sep) ? realFinal : `${realFinal}${sep}`).href,
     desktopFallback,
     skills: [],
     extras: [],

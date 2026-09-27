@@ -30,12 +30,14 @@ export function renderScreen(report: Report): string {
   lines.push('');
   const linked = report.extras.filter((e) => e.kind === 'linked').length;
   lines.push(`${pad('Skills found', 18)}${num(report.skills.length)}   (${uniqueByContent(report.skills)} unique by content)`);
-  lines.push(`${pad('Linked scripts', 18)}${num(linked)}   copied   ${report.linkedMisses.length} referenced but not found   (listed in MANIFEST.md)`);
+  const missingScripts = report.linkedMisses.filter((m) => m.disqualifies).length;
+  lines.push(`${pad('Linked scripts', 18)}${num(linked)}   copied   ${report.linkedMisses.length} referenced but not found, ${missingScripts} missing script${missingScripts === 1 ? '' : 's'}   (listed in MANIFEST.md)`);
   if (u.status === 'read') lines.push(`${pad('Skill firings', 18)}${num(u.firings)}   across ${u.sessionsWithFirings} sessions`);
   lines.push(`${pad('Redacted lines', 18)}${num(report.redactions.length)}   in ${redactedFiles(report.redactions)} files   (see FLAGGED.md)`);
   if (report.problems.length > 0) lines.push(`${pad('Problems', 18)}${num(report.problems.length)}   recorded, none fatal   (listed in MANIFEST.md)`);
   lines.push('');
-  lines.push(`Written to  ${report.outputFolder}/`);
+  lines.push(`Written to  ${report.outputFolderUrl}`);
+  lines.push('  Click the link to open the folder (Ctrl+click on Windows, Cmd+click on a Mac).');
   if (report.desktopFallback) lines.push('  (no Desktop folder was found, so the folder is in your home folder)');
   lines.push('  MANIFEST.md   read this first');
   lines.push(`  FLAGGED.md    ${report.redactions.length} redaction${report.redactions.length === 1 ? '' : 's'} to confirm`);
@@ -57,12 +59,14 @@ export function renderJson(report: Report): string {
     sha256: report.sha256,
     commit: report.commit,
     outputFolder: report.outputFolder,
+    outputFolderUrl: report.outputFolderUrl,
     skills: report.skills.length,
     skillsUniqueByContent: uniqueByContent(report.skills),
     commands: report.extras.filter((e) => e.kind === 'command').length,
     agents: report.extras.filter((e) => e.kind === 'agent').length,
     linkedCopied: report.extras.filter((e) => e.kind === 'linked').length,
     linkedMissing: report.linkedMisses.length,
+    linkedMissingScripts: report.linkedMisses.filter((m) => m.disqualifies).length,
     usage: report.usage,
     redactions: report.redactions.length,
     redactedFiles: redactedFiles(report.redactions),

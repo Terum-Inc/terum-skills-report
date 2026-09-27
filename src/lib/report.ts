@@ -41,6 +41,8 @@ export interface LinkedMiss {
   source: string;
   reference: string;
   reason: string;
+  /** True when the eval cannot run the skill without this file: a script-like reference that is not in the bundle (walk D16). Every other miss is information. */
+  disqualifies: boolean;
 }
 
 export interface Redaction {
@@ -99,6 +101,8 @@ export interface Report {
   startedAt: string;
   flags: { usage: boolean; includeHooks: boolean; includeClaudeMd: boolean; hashLabels: boolean };
   outputFolder: string;
+  /** A `file://` link to the real output folder, for the screen only: it carries the real home path, so it is never written into the bundle (spec §5.5). */
+  outputFolderUrl: string;
   desktopFallback: boolean;
   skills: SkillEntry[];
   extras: CopiedExtra[];

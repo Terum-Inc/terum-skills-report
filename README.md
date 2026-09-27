@@ -57,6 +57,9 @@ Releases are published with npm provenance, which links the published file to th
 └── usage/             summary.csv, firings.csv, sessions.csv
 ```
 
+The screen ends with a `file://` link to this folder. Ctrl+click it (Cmd+click on a Mac) to open it
+in Explorer or Finder.
+
 ## Flags
 
 | Flag | Effect |
