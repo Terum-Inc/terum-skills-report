@@ -106,7 +106,7 @@ export async function buildFixture(): Promise<Fixture> {
     '# alpha', '', 'Run `scripts/run.sh` first, then `node .claude/workflows/helper.js`.',
     'Never read `../.env`. Docs: https://example.com/alpha/guide.md', '',
     'Permissions live in `.claude/settings.json`; transcripts in `~/.claude/projects/x.jsonl`.', '',
-    'Its own folder: `<skill-dir>/scripts/run.sh`; not there: `${CLAUDE_SKILL_DIR}/scripts/absent.py`; a placeholder: `<worktree>/report.json`.', '',
+    'Its own folder: `<skill-dir>/scripts/run.sh`; not there: `${CLAUDE_SKILL_DIR}/scripts/absent.py`; a placeholder: `<worktree>/report.json`. Also `{SKILL_DIR}/scripts/run.sh`, `$BT_DIR/scripts/x.mjs` and `{WORKSPACE}/notes.md`.', '',
   ].join('\n'));
   await write(H('.claude', 'skills', 'alpha', 'scripts', 'run.sh'), [
     '#!/bin/sh',
@@ -148,7 +148,7 @@ export async function buildFixture(): Promise<Fixture> {
       'missing@market': [{ scope: 'user', installPath: join(home, '.claude', 'plugins', 'cache', 'market', 'missing', '1.0.0'), version: '1.0.0' }],
     },
   }, null, 2));
-  await write(join(pluginRoot, 'skills', 'gamma-skill', 'SKILL.md'), '---\nname: gamma-skill\ndescription: Gamma.\n---\nRun `python $CLAUDE_PLUGIN_ROOT/scripts/g.py` and `${CLAUDE_PLUGIN_ROOT}/scripts/absent.py`, also `${CLAUDE_SKILL_DIR}/../../scripts/g.py`.\n');
+  await write(join(pluginRoot, 'skills', 'gamma-skill', 'SKILL.md'), '---\nname: gamma-skill\ndescription: Gamma.\n---\nRun `python $CLAUDE_PLUGIN_ROOT/scripts/g.py` and `${CLAUDE_PLUGIN_ROOT}/scripts/absent.py`, also `${CLAUDE_SKILL_DIR}/../../scripts/g.py` and `../../scripts/g.py`.\n');
   await write(join(pluginRoot, 'scripts', 'g.py'), [
     'import os',
     'KEY = os.environ["OPENAI_API_KEY"]  # variable read, not flagged',
@@ -162,7 +162,7 @@ export async function buildFixture(): Promise<Fixture> {
   ].join('\n'));
 
   // Project A: a skill that references a project workflow and a missing script; a CLAUDE.md; a .env.
-  await write(join(projA, '.claude', 'skills', 'delta', 'SKILL.md'), '---\nname: delta\ndescription: Delta.\n---\nRuns `.claude/workflows/wf.js` then `scripts/missing.sh` and `scripts/deploy.sh`. Fix `lib/phase1.ts`. See `/etc/secrets.yaml` and `C:\\absolute\\nowhere.ps1`.\n');
+  await write(join(projA, '.claude', 'skills', 'delta', 'SKILL.md'), '---\nname: delta\ndescription: Delta.\n---\nRuns `.claude/workflows/wf.js` (also written `workflows/wf.js`) then `scripts/missing.sh` and `scripts/deploy.sh`. Fix `lib/phase1.ts`. See `/etc/secrets.yaml` and `C:\\absolute\\nowhere.ps1`.\n');
   await write(join(projA, 'scripts', 'deploy.sh'), '#!/bin/sh\necho deploy\n');
   await write(join(projA, 'lib', 'phase1.ts'), 'export const PLANTED_APP_SOURCE = 1;\n');
   await write(join(projA, '.claude', 'workflows', 'wf.js'), `const token = "${PLANTED.namedToken}";\nconst apiKey = process.env.API_KEY;\nconsole.log(token, apiKey);\n`);

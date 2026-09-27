@@ -63,6 +63,24 @@ reopens a walked fork. Where a note narrows what leaves the machine, §2.6 (neve
   plugin or skills folder. Any other `<name>/file.ext` is listed as a placeholder, not as an absolute
   path. `<skill-path>` is not the skill's folder: skill-creator uses it for whichever skill is being
   edited.
+- **Only a missing script disqualifies a skill** (2026-09-27, walk D16). Spec §2.2 said every
+  unresolved reference makes the skill *not evaluable*; on the first real bundle that was 72 of 117
+  skills, mostly over prose example paths such as `path/to/file.ts`. Now each miss carries
+  `disqualifies`: true when the reference is script-like (under `scripts/`, `bin/`, `tools/` or
+  `workflows/`, or a shell-script extension) and the file is not in the bundle (not found, not
+  opened, or found but not copied). `.js`, `.ts` and `.py` alone do not count, because skills name
+  application source and prose examples with them; `hooks/` does not count, because Claude Code runs
+  hooks, not the skill, and hook configuration is never collected by default. Placeholders,
+  never-collected files and folders never disqualify. MANIFEST.md marks the disqualifying lines, and
+  the screen and `--json` count them.
+- **Three more resolver gaps, found by reading the first 26 flagged lines** (2026-09-27, with D16):
+  a relative `../other/scripts/x.mjs` from the skill folder resolves inside the same plugin, project
+  or skills folder, as the `$CLAUDE_SKILL_DIR/..` form already did; a project skill's
+  `skills/<name>/scripts/x.py`, written from the project's `.claude` folder, is tried against that
+  folder and reported against the project root so the output path is stable; `{SKILL_DIR}` is a
+  third own-folder spelling, and any other `{name}/file.ext` or `$VAR/file.ext` is listed as a
+  placeholder, never as a root path. On this machine: linked copies 7 to 11, misses 372 to 357,
+  missing scripts 26 to 12.
 - **Tokens with regex escapes** (`api\.cohere\.ai`) are not paths.
 - **Guards:** a resolved path must lie inside the base it was resolved against, so `../.env`
   cannot climb out; absolute paths outside the project and `~/.claude` are not opened.

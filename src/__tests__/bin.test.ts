@@ -38,7 +38,7 @@ describe('dist/index.js', () => {
     const { stdout, stderr } = await run(process.execPath, [bin, '--out', out, '--json'], { env: env(), timeout: 120_000 });
     expect(stderr).toBe('');
     const summary = JSON.parse(stdout) as Record<string, unknown>;
-    expect(summary).toMatchObject({ skills: 5, skillsUniqueByContent: 4, commands: 2, agents: 2, linkedCopied: 4, linkedMissing: 10 });
+    expect(summary).toMatchObject({ skills: 5, skillsUniqueByContent: 4, commands: 2, agents: 2, linkedCopied: 4, linkedMissing: 12, linkedMissingScripts: 4 });
     expect((summary['usage'] as { firings: number }).firings).toBe(4);
     expect(resolve(fileURLToPath(summary['outputFolderUrl'] as string))).toBe(await realpath(out));
     expect((await stat(join(out, 'MANIFEST.md'))).isFile()).toBe(true);

@@ -34,6 +34,7 @@ Spec: `docs/spec.md` §11 forks F1–F5 and §2.4 opt-ins.
 | 13 | What the placeholder does if run unpinned | 1/10 | 1/10 | LOCK | Obvious — prints the pinned command and exits with an error rather than silently doing nothing. | — |
 | 14 | How the screen points at the output folder | 3/10 | 2/10 | LOCK | Obvious — a plain `file://` link is the one form every common terminal makes clickable; the bundle is unchanged. | — |
 | 15 | Skill-folder placeholders in script paths | 4/10 | 4/10 | LOCK | `<skill-dir>` and `$CLAUDE_SKILL_DIR` resolve inside the skill folder; any other `<name>/file.ext` is listed as a placeholder. Ryan, 2026-09-24. | — |
+| 16 | Which unresolved references make a skill not evaluable | 6/10 | 6/10 | LOCK | Only a script-like reference missing from the bundle disqualifies (`scripts/`, `bin/`, `tools/`, `workflows/` or a shell-script extension); every other miss is information. Ryan, 2026-09-27. | — |
 
 ---
 
@@ -364,3 +365,33 @@ The `Written to` line prints a `file://` link to the real folder, because every 
 - **Migration / schema:** none.
 - **Effort / blast radius:** small; the same code covers `${CLAUDE_SKILL_DIR}`, which the browserbase autobrowse plugin skill uses, including `../browser-trace/scripts/x.mjs`.
 - **Grounding findings:** every SKILL.md on this machine (292 files) uses `<skill-dir>` 23 times, `${CLAUDE_SKILL_DIR}` 14 times and `<skill-path>` 4 times (skill-creator, as an argument); 17 references in five home skills were misreported as absolute paths.
+
+---
+
+## Decision 16 — Which unresolved references make a skill not evaluable
+
+**Verdict: LOCK** · **Impact: 6/10** — a promise printed in every bundle and a rule the receiving side implements; reversible, but bundles already sent carry the old sentence · **Importance: 6/10** — both readings were defensible; the wrong one hides most skills or scores skills that cannot run
+
+### Plain English
+- **Where we are:** MANIFEST.md promised that a skill with any unresolved reference is reported as not evaluable, meaning our side skips scoring it. After D15, 70 of 117 skills on the first real bundle still had at least one, mostly prose example paths such as `path/to/file.ts`.
+- **The question:** Which unresolved references should disqualify a skill from scoring?
+- **Options:**
+  - **A — Only missing scripts disqualify.** A reference counts when it looks runnable and is not in the bundle; prose paths stay listed as information. *(the difference that decides: most skills become scoreable, and the manifest sentence says exactly that)*
+  - **B — Keep the rule as written.** Any miss disqualifies. *(the difference that decides: the promise stays simple; 60 percent of skills go unscored)*
+  - **C — Decide on the receiving side.** Leave the list as is and write the rule into the receiving-side spec. *(the difference that decides: nothing changes in the bundle until that spec exists)*
+- **Recommendation:** A, because the report's purpose is scoring skills, and a prose example path says nothing about whether the skill runs.
+- **Impact (6/10):** a promise in every bundle · **Importance (6/10):** a real trade between honest coverage and honest caution
+- **The call:** A. Ryan, 2026-09-27: "only missing scripts disqualify". Script-like means any file under `scripts/`, `bin/`, `tools/` or `workflows/`, or a shell script (`.sh`, `.bash`, `.zsh`, `.fish`, `.ps1`, `.psm1`, `.bat`, `.cmd`) anywhere. `.js`, `.ts` and `.py` alone do not count, because skills name application source and prose examples with them; `hooks/` does not count, because Claude Code runs hooks, the skill does not, and hook configuration is never collected by default. Missing means not found, not opened, or found but not copied; placeholders, never-collected files and folders never disqualify. Each miss carries `disqualifies` in `manifest.json`, is marked **not evaluable** in MANIFEST.md, and the screen and `--json` count them.
+
+### Scores
+| Option | Fit (0-4) | Bug risk (0-4) | Wins if |
+|---|---|---|---|
+| A — only missing scripts disqualify | 2 — implied by §2.2's scope ("workflow scripts, shell scripts, Python helpers") and §9 "skills whose machinery cannot run in our sandbox are not evaluable" | 1 — a classifier on the existing miss list plus one sentence; a wrong class shows as a wrongly marked line, nothing is dropped | the report should score what it honestly can |
+| B — keep the rule as written | 3 — matches the §2.2 sentence "every reference the collector could not resolve is listed … so the eval marks the skill not evaluable" | 0 — no change | you would rather under-score than ever score a broken skill |
+| C — decide on the receiving side | 1 — §9 defers that side, but the collector prints the promise now | 0 — no change | the receiving-side spec is coming soon anyway |
+
+### Technical
+- **Files / code paths:** `src/lib/linked.ts` (`isScriptLike`, `MissCategory`, `disqualifies`, a category on every failure site), `src/lib/report.ts` (`LinkedMiss.disqualifies`), `src/lib/manifest.ts` (sentence and per-miss marker), `src/lib/screen.ts` (screen count, `linkedMissingScripts` in `--json`); tests in `linked.test.ts`, `leak.test.ts`, `bin.test.ts`.
+- **Migration / schema:** `manifest.json` misses gain one boolean. Bundles from 1.0.0 lack it; the receiving side must treat a missing field as the old rule, every miss disqualifies.
+- **Effort / blast radius:** reading the first 26 flagged lines exposed three resolver gaps of the D15 class, swept in the same change: a relative `../sibling/scripts/x.mjs` from the skill folder now resolves inside the same plugin, project or skills folder; a project skill's `skills/<name>/scripts/x.py`, written from the project's `.claude` folder, is tried against that folder; `{SKILL_DIR}` is a third own-folder spelling, and any other `{name}/…` or `$VAR/…` is a placeholder, never a root path.
+- **Grounding findings:** first real bundle, 2026-09-27. The rule alone marked 26 of 372 misses across 16 skills. After the sweep: linked copies 7 to 11, misses 357, missing scripts 12 across 9 skills: harden's absent `harden-state.mjs`, parallel-fix and single-fix's project-level `next-bug-number.sh` in their home copies, an example command in codex-implement, and vendor doc examples in browserbase, superpowers and vercel skills. The known trade-off: an example command such as `python scripts/check_error_streams.py` in a table still counts as a missing script.

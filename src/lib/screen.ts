@@ -30,7 +30,8 @@ export function renderScreen(report: Report): string {
   lines.push('');
   const linked = report.extras.filter((e) => e.kind === 'linked').length;
   lines.push(`${pad('Skills found', 18)}${num(report.skills.length)}   (${uniqueByContent(report.skills)} unique by content)`);
-  lines.push(`${pad('Linked scripts', 18)}${num(linked)}   copied   ${report.linkedMisses.length} referenced but not found   (listed in MANIFEST.md)`);
+  const missingScripts = report.linkedMisses.filter((m) => m.disqualifies).length;
+  lines.push(`${pad('Linked scripts', 18)}${num(linked)}   copied   ${report.linkedMisses.length} referenced but not found, ${missingScripts} missing script${missingScripts === 1 ? '' : 's'}   (listed in MANIFEST.md)`);
   if (u.status === 'read') lines.push(`${pad('Skill firings', 18)}${num(u.firings)}   across ${u.sessionsWithFirings} sessions`);
   lines.push(`${pad('Redacted lines', 18)}${num(report.redactions.length)}   in ${redactedFiles(report.redactions)} files   (see FLAGGED.md)`);
   if (report.problems.length > 0) lines.push(`${pad('Problems', 18)}${num(report.problems.length)}   recorded, none fatal   (listed in MANIFEST.md)`);
@@ -65,6 +66,7 @@ export function renderJson(report: Report): string {
     agents: report.extras.filter((e) => e.kind === 'agent').length,
     linkedCopied: report.extras.filter((e) => e.kind === 'linked').length,
     linkedMissing: report.linkedMisses.length,
+    linkedMissingScripts: report.linkedMisses.filter((m) => m.disqualifies).length,
     usage: report.usage,
     redactions: report.redactions.length,
     redactedFiles: redactedFiles(report.redactions),

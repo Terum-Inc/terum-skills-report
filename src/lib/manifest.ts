@@ -77,11 +77,12 @@ export function renderManifest(report: Report, files: readonly WrittenFile[]): s
 
   h('Linked scripts');
   const linked = report.extras.filter((e) => e.kind === 'linked');
-  lines.push(`${plural(linked.length, 'file')} a skill references outside its own folder ${linked.length === 1 ? 'was' : 'were'} copied; ${plural(report.linkedMisses.length, 'reference')} could not be resolved. A skill with an unresolved reference is reported as *not evaluable*, never guessed at.`);
+  const missingScripts = report.linkedMisses.filter((m) => m.disqualifies).length;
+  lines.push(`${plural(linked.length, 'file')} a skill references outside its own folder ${linked.length === 1 ? 'was' : 'were'} copied; ${plural(report.linkedMisses.length, 'reference')} could not be resolved, ${missingScripts} of them ${missingScripts === 1 ? 'a script' : 'scripts'} the skill runs. A skill whose script is missing is reported as *not evaluable*, never guessed at; those references are marked **not evaluable** below. The rest are listed for information and do not affect scoring.`);
   for (const extra of linked) lines.push(`- \`${extra.outputPath}\` from ${extra.readFrom}, referenced by ${(extra.referencedBy ?? []).join(', ')}`);
   if (report.linkedMisses.length > 0) {
     lines.push('', 'Referenced, not found:', '');
-    for (const miss of report.linkedMisses) lines.push(`- ${miss.skill} (${miss.source}) references \`${miss.reference}\`: ${miss.reason}`);
+    for (const miss of report.linkedMisses) lines.push(`- ${miss.skill} (${miss.source}) references \`${miss.reference}\`: ${miss.reason}${miss.disqualifies ? ' · **not evaluable**' : ''}`);
   }
 
   h('Usage');

@@ -41,6 +41,8 @@ export interface LinkedMiss {
   source: string;
   reference: string;
   reason: string;
+  /** True when the eval cannot run the skill without this file: a script-like reference that is not in the bundle (walk D16). Every other miss is information. */
+  disqualifies: boolean;
 }
 
 export interface Redaction {
