@@ -4,7 +4,8 @@ name: Release
 # again, the bundle is built, and the package is published with npm provenance so the published file
 # links to this exact commit (spec §5.1). The tag is created only after the publish succeeds.
 #
-# One-time setup: an npm Trusted Publisher for ryanliu-terum/terum-skills-report on this workflow
+# One-time setup: an npm Trusted Publisher for Terum-Inc/terum-skills-report on this workflow (the repository
+# moved from ryanliu-terum to the Terum-Inc organization on 2026-10-02; the publisher had to be re-registered)
 # (docs.npmjs.com/trusted-publishers), and a GitHub environment named `npm` with a required reviewer.
 # Trusted publishing needs npm >= 11.5.1 on Node >= 22.14; Node 22 bundles npm 10.9, so the npm CLI
 # is upgraded below before the publish. Nothing here bumps versions.
