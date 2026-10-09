@@ -93,7 +93,7 @@ node dist/index.js --out /tmp/report
 The contract is `docs/spec.md`; `docs/spec-readable.md` is its plain-English companion,
 `docs/decision-walk.md` records every design fork and its ruling, and `docs/build-notes.md` records
 what the build refined and what a first real run changed. Two modules are copied from
-[terum-skills](https://github.com/ryanliu-terum/terum-skills) with their origin in a comment.
+[terum-skills](https://github.com/Terum-Inc/terum-skills) with their origin in a comment.
 
 The leak test (`src/__tests__/leak.test.ts`) runs the whole collector against a planted home folder
 and asserts that nothing planted reaches the output. Keep it green.

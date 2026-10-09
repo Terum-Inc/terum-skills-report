@@ -6,12 +6,12 @@
   "type": "module",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ryanliu-terum/terum-skills-report.git"
+    "url": "git+https://github.com/Terum-Inc/terum-skills-report.git"
   },
   "bugs": {
-    "url": "https://github.com/ryanliu-terum/terum-skills-report/issues"
+    "url": "https://github.com/Terum-Inc/terum-skills-report/issues"
   },
-  "homepage": "https://github.com/ryanliu-terum/terum-skills-report#readme",
+  "homepage": "https://github.com/Terum-Inc/terum-skills-report#readme",
   "keywords": [
     "claude-code",
     "skills",

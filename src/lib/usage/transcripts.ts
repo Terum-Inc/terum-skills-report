@@ -4,7 +4,7 @@
  * Copied from terum-skills `src/lib/usage/transcripts.ts` (two-detector firing scanner, the
  * `entrypoint` noise filter, the builtin-command list, the one-level transcript glob) and the turn
  * machine of `src/lib/misses/harvest.ts` (what is a human message, what is injected, what is a tool
- * result), at commit ed9f38a of github.com/ryanliu-terum/terum-skills. This copy adds what the
+ * result), at commit ed9f38a of github.com/Terum-Inc/terum-skills. This copy adds what the
  * originals deliberately omit: tokens, model, timestamp, tool errors, interruptions and the nested
  * subagent transcripts, joined to the exchange that launched them by `agentId`.
  *

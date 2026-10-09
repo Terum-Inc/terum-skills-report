@@ -12,7 +12,7 @@ declare const __COMMIT__: string | undefined;
 
 export const VERSION: string = typeof __VERSION__ === 'string' ? __VERSION__ : '0.0.0-dev';
 export const COMMIT: string = typeof __COMMIT__ === 'string' ? __COMMIT__ : 'unknown';
-export const SOURCE = 'github.com/ryanliu-terum/terum-skills-report';
+export const SOURCE = 'github.com/Terum-Inc/terum-skills-report';
 
 /** sha256 of the running entry file, or `unavailable` when it cannot be read (never fatal). */
 export async function selfSha256(entry: string | URL = import.meta.url): Promise<string> {

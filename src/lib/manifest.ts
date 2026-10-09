@@ -161,7 +161,7 @@ export function renderCollector(report: Report): string {
   return [
     `terum-skills-report ${report.version}`,
     `sha256 ${report.sha256}`,
-    `source github.com/ryanliu-terum/terum-skills-report @ ${report.commit}`,
+    `source github.com/Terum-Inc/terum-skills-report @ ${report.commit}`,
     `command ${report.command}`,
     `started ${report.startedAt}`,
     `flags usage=${report.flags.usage} include-hooks=${report.flags.includeHooks} include-claude-md=${report.flags.includeClaudeMd} hash-labels=${report.flags.hashLabels}`,

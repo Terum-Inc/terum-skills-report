@@ -12,7 +12,7 @@ export function renderScreen(report: Report): string {
   // Locations are padded to the longest one so counts line up whatever the folder names are.
   const width = Math.max(40, ...report.locations.map((l) => l.location.length + 3));
   const pad = (label: string, w = width): string => label.padEnd(w);
-  lines.push(`terum-skills-report ${report.version}  (sha256 ${report.sha256.slice(0, 4)}…${report.sha256.slice(-4)}, source: github.com/ryanliu-terum/terum-skills-report @ ${report.commit.slice(0, 7)})`);
+  lines.push(`terum-skills-report ${report.version}  (sha256 ${report.sha256.slice(0, 4)}…${report.sha256.slice(-4)}, source: github.com/Terum-Inc/terum-skills-report @ ${report.commit.slice(0, 7)})`);
   lines.push('Runs offline. Nothing is sent anywhere. You review the folder, then zip and send it yourself.');
   lines.push('');
   lines.push('Reading');
